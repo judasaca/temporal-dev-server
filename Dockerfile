@@ -11,6 +11,7 @@ ARG TEMPORAL_CLI_VERSION=1.4.0
 ENV TEMPORAL_CLI_VERSION=${TEMPORAL_CLI_VERSION}
 ENV DB_FILE=/data/temporal_file.db
 ENV UI_PORT=8080
+ENV HEADLESS=false
 
 # Download and install Temporal CLI
 ARG TARGETPLATFORM
@@ -35,8 +36,15 @@ RUN cat << 'EOF' > /entrypoint.sh
 #!/bin/sh
 set -e
 
-# Start Temporal dev server with DB and custom UI port
-temporal server start-dev --ip 0.0.0.0 --db-filename ${DB_FILE} --ui-port ${UI_PORT} &
+# Build optional flags
+FLAGS="--ip 0.0.0.0 --db-filename ${DB_FILE} --ui-port ${UI_PORT}"
+
+if [ "${HEADLESS}" = "true" ]; then
+FLAGS="${FLAGS} --headless"
+fi
+
+# Start Temporal dev server
+temporal server start-dev ${FLAGS} &
 
 # Keep container alive with server process
 wait
